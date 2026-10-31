@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="부동산 양도소득세 참고용 계산기. 거주 구간별 날짜와 통산 일수를 확인할 수 있습니다.">
+<title>부동산 양도세 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<style>
+  :root{
+    --ground:#eef1f6;
+    --surface:#ffffff;
+    --surface-2:#f6f8fb;
+    --ink:#151d29;
+    --ink-2:#4a5768;
+    --ink-3:#7c8899;
+    --line:#d5dce6;
+    --line-soft:#e6ebf2;
+    --accent:#1f4b8e;
+    --accent-ink:#ffffff;
+    --accent-soft:#e5edf9;
+    --tax:#a0392b;
+    --tax-soft:#fbeae6;
+    --net:#1b6b58;
+    --net-soft:#e3f2ed;
+    --warn:#8a5a12;
+    --warn-soft:#fbf1de;
+    --focus:#2f6fd0;
+    --radius:6px;
+    --shadow:0 1px 2px rgba(21,29,41,.06), 0 8px 24px -12px rgba(21,29,41,.22);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e131a;
+      --surface:#161d27;
+      --surface-2:#1c242f;
+      --ink:#e7ecf3;
+      --ink-2:#a8b4c4;
+      --ink-3:#778495;
+      --line:#2a3441;
+      --line-soft:#222b36;
+      --accent:#79a6e8;
+      --accent-ink:#0e131a;
+      --accent-soft:#1c2836;
+      --tax:#e79080;
+      --tax-soft:#2e1f1c;
+      --net:#5fbca3;
+      --net-soft:#16291f;
+      --warn:#d7a65a;
+      --warn-soft:#2a2317;
+      --focus:#79a6e8;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e131a;
+    --surface:#161d27;
+    --surface-2:#1c242f;
+    --ink:#e7ecf3;
+    --ink-2:#a8b4c4;
+    --ink-3:#778495;
+    --line:#2a3441;
+    --line-soft:#222b36;
+    --accent:#79a6e8;
+    --accent-ink:#0e131a;
+    --accent-soft:#1c2836;
+    --tax:#e79080;
+    --tax-soft:#2e1f1c;
+    --net:#5fbca3;
+    --net-soft:#16291f;
+    --warn:#d7a65a;
+    --warn-soft:#2a2317;
+    --focus:#79a6e8;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+    font-size:15px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 56px}
+
+  /* ---------- header ---------- */
+  .masthead{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+    flex-wrap:wrap;
+    padding-bottom:14px;border-bottom:2px solid var(--ink);margin-bottom:26px;
+  }
+  .masthead h1{
+    font-family:"Gowun Batang","Batang",serif;
+    font-weight:700;font-size:30px;line-height:1.25;margin:0;letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .masthead .sub{margin:6px 0 0;color:var(--ink-2);font-size:13.5px;font-weight:300}
+  .stamp{
+    flex:none;
+    font-size:11px;letter-spacing:.14em;font-weight:600;
+    color:var(--accent);border:1px solid var(--accent);
+    padding:5px 10px;border-radius:2px;
+    white-space:nowrap;
+  }
+
+  /* ---------- layout ---------- */
+  .cols{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:start}
+  @media (max-width:880px){.cols{grid-template-columns:1fr}}
+
+  /* ---------- form ---------- */
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  }
+  .panel > h2{
+    font-family:"Gowun Batang","Batang",serif;
+    font-size:15px;font-weight:700;margin:0;
+    padding:13px 18px;border-bottom:1px solid var(--line);
+    letter-spacing:.02em;
+  }
+  .fields{padding:6px 18px 18px}
+
+  .field{padding:13px 0;border-bottom:1px dashed var(--line-soft)}
+  .field:last-child{border-bottom:0}
+  .field > label,.field > .lbl{
+    display:block;font-size:12.5px;font-weight:500;color:var(--ink-2);
+    margin-bottom:7px;letter-spacing:.01em;
+  }
+  .hint{font-size:11.5px;color:var(--ink-3);font-weight:300;margin-left:6px}
+
+  input[type="text"],input[type="date"],input[type="number"],select{
+    width:100%;padding:9px 11px;
+    background:var(--surface-2);color:var(--ink);
+    border:1px solid var(--line);border-radius:4px;
+    font-family:inherit;font-size:15px;
+  }
+  input[type="text"].money{
+    font-family:"IBM Plex Mono",Consolas,monospace;
+    font-variant-numeric:tabular-nums;
+    text-align:right;font-size:15.5px;font-weight:500;letter-spacing:.01em;
+  }
+  input:focus-visible,select:focus-visible,button:focus-visible{
+    outline:2px solid var(--focus);outline-offset:1px;
+  }
+  .money-row{display:flex;align-items:center;gap:8px}
+  .money-row .unit{flex:none;font-size:13px;color:var(--ink-3)}
+  .readout{
+    margin-top:5px;font-size:11.5px;color:var(--accent);min-height:17px;
+    text-align:right;font-weight:500;
+  }
+  .dates{display:grid;grid-template-columns:1fr auto 1fr;gap:9px;align-items:center}
+  .dates .tilde{color:var(--ink-3);font-size:13px}
+
+  /* 기간 자동 계산 표시 */
+  .period{
+    margin-top:9px;padding:9px 12px;border-radius:4px;
+    background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:10px;flex-wrap:wrap;
+  }
+  .period .big{
+    font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums;
+    font-size:15px;font-weight:600;letter-spacing:-.01em;
+  }
+  .period .aside{font-size:11.5px;font-weight:400;opacity:.85}
+  .period.bad{background:var(--tax-soft);color:var(--tax)}
+  .period.bad .big{font-size:13px;font-weight:500}
+  .period.empty{background:var(--surface-2);color:var(--ink-3)}
+  .period.empty .big{font-size:12.5px;font-weight:400}
+
+  /* 거주 구간 목록 */
+  .live-row{padding:9px 0;border-bottom:1px dotted var(--line-soft)}
+  .live-row:first-child{padding-top:0}
+  .live-row:last-child{border-bottom:0;padding-bottom:2px}
+  .live-row .top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .live-row .sub{
+    margin-top:5px;text-align:right;font-size:11.5px;color:var(--ink-3);
+    font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums;
+    min-height:16px;
+  }
+  .live-row .sub.bad{color:var(--tax);font-family:inherit}
+  .del{
+    flex:none;padding:0;width:30px;height:30px;line-height:1;
+    font-size:17px;color:var(--ink-3);
+  }
+  .del:hover{color:var(--tax);border-color:var(--tax)}
+  .add{width:100%;margin-top:10px;border-style:dashed;color:var(--accent);border-color:var(--line)}
+  .add:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* segmented control */
+  .seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .seg label{flex:1}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg span{
+    display:block;text-align:center;padding:9px 4px;font-size:13.5px;
+    background:var(--surface-2);color:var(--ink-2);cursor:pointer;
+    border-right:1px solid var(--line);transition:background .12s,color .12s;
+  }
+  .seg label:last-child span{border-right:0}
+  .seg input:checked + span{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  .seg input:focus-visible + span{outline:2px solid var(--focus);outline-offset:-2px}
+
+  /* checkbox rows */
+  .checks{display:flex;flex-direction:column;gap:9px}
+  .chk{display:flex;gap:9px;align-items:flex-start;cursor:pointer;font-size:13.5px;color:var(--ink)}
+  .chk input{margin:3px 0 0;accent-color:var(--accent);flex:none;width:15px;height:15px}
+  .chk .why{display:block;font-size:11.5px;color:var(--ink-3);font-weight:300;line-height:1.45}
+  .off{display:none}
+
+  .actions{display:flex;gap:8px;padding:0 18px 18px}
+  button{
+    font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;
+    padding:8px 14px;border-radius:4px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--ink-2);
+  }
+  button:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* ---------- result ---------- */
+  .result{position:sticky;top:20px}
+  @media (max-width:880px){.result{position:static}}
+
+  .headline{
+    padding:20px 20px 18px;border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+  .headline .cap{
+    font-size:11px;letter-spacing:.14em;font-weight:600;color:var(--ink-3);
+    text-transform:uppercase;
+  }
+  .total{
+    font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums;
+    font-size:clamp(30px,6vw,40px);font-weight:600;line-height:1.1;
+    color:var(--tax);margin:6px 0 2px;letter-spacing:-.02em;word-break:break-all;
+  }
+  .total.zero{color:var(--net)}
+  .total-ko{font-size:13px;color:var(--ink-2)}
+
+  .facts{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+  .fact{padding:12px 20px;border-right:1px solid var(--line)}
+  .fact:last-child{border-right:0}
+  .fact dt{font-size:11.5px;color:var(--ink-3);margin:0 0 3px}
+  .fact dd{
+    margin:0;font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums;
+    font-size:16px;font-weight:500;
+  }
+  .fact dd.net{color:var(--net)}
+
+  .badges{display:flex;flex-wrap:wrap;gap:6px;padding:13px 20px;border-bottom:1px solid var(--line)}
+  .badge{
+    font-size:11.5px;font-weight:500;padding:3px 8px;border-radius:3px;
+    background:var(--accent-soft);color:var(--accent);white-space:nowrap;
+  }
+  .badge.b-tax{background:var(--tax-soft);color:var(--tax)}
+  .badge.b-net{background:var(--net-soft);color:var(--net)}
+  .badge.b-warn{background:var(--warn-soft);color:var(--warn)}
+
+  /* ledger */
+  .ledger{padding:6px 20px 16px}
+  .lrow{
+    display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:baseline;
+    padding:6px 0;font-size:13.5px;
+  }
+  .lrow .op{
+    font-family:"IBM Plex Mono",Consolas,monospace;
+    color:var(--ink-3);font-size:13px;text-align:center;
+  }
+  .lrow .nm{color:var(--ink-2)}
+  .lrow .nm em{font-style:normal;color:var(--ink-3);font-size:11.5px;margin-left:5px}
+  .lrow .vl{
+    font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums;
+    font-size:14px;color:var(--ink);
+  }
+  .lrow.sum{border-top:1px solid var(--line);margin-top:2px;padding-top:9px}
+  .lrow.sum .nm{color:var(--ink);font-weight:600}
+  .lrow.sum .vl{font-weight:600}
+  .lrow.grand{border-top:2px solid var(--ink);margin-top:4px;padding-top:10px}
+  .lrow.grand .nm{color:var(--ink);font-weight:700}
+  .lrow.grand .vl{font-weight:700;color:var(--tax);font-size:15.5px}
+  .lrow.muted .nm,.lrow.muted .vl{color:var(--ink-3)}
+
+  .note{
+    margin:0 20px 16px;padding:11px 13px;border-radius:4px;
+    background:var(--warn-soft);color:var(--warn);
+    font-size:12.5px;line-height:1.55;
+  }
+  .note.info{background:var(--accent-soft);color:var(--accent)}
+  .note.good{background:var(--net-soft);color:var(--net)}
+  .note ul{margin:0;padding-left:16px}
+  .note li + li{margin-top:4px}
+
+  /* ---------- footer ---------- */
+  .disclaimer{
+    margin-top:26px;padding:16px 18px;
+    border:1px solid var(--line);border-left:3px solid var(--ink-3);
+    border-radius:var(--radius);background:var(--surface);
+    font-size:12.5px;color:var(--ink-2);line-height:1.65;
+  }
+  .disclaimer strong{color:var(--ink);font-weight:600}
+  .disclaimer ul{margin:8px 0 0;padding-left:17px}
+  .disclaimer li + li{margin-top:3px}
+  .disclaimer .basis{margin:13px 0 0;padding-top:12px;border-top:1px solid var(--line-soft)}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>부동산 양도세 계산기</h1>
+      <p class="sub">양도가액·취득일만 넣으면 장기보유특별공제와 지방소득세까지 한 번에 계산합니다.</p>
+    </div>
+    <div class="stamp">참고용 추정</div>
+  </header>
+
+  <div class="cols">
+    <!-- ============ 입력 ============ -->
+    <section class="panel" aria-label="입력">
+      <h2>양도 내역 입력</h2>
+      <div class="fields">
+
+        <div class="field">
+          <span class="lbl">자산 유형</span>
+          <div class="seg" role="radiogroup" aria-label="자산 유형">
+            <label><input type="radio" name="kind" value="house" checked><span>주택 · 입주권</span></label>
+            <label><input type="radio" name="kind" value="right"><span>분양권</span></label>
+            <label><input type="radio" name="kind" value="land"><span>토지 · 상가</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="lbl">보유 기간 <span class="hint">취득일(잔금일) ~ 양도일(잔금일)</span></span>
+          <div class="dates">
+            <input type="date" id="buyDate" value="2018-04-12" aria-label="취득일">
+            <span class="tilde">~</span>
+            <input type="date" id="sellDate" value="2026-09-11" aria-label="양도일">
+          </div>
+          <div class="period" id="holdPeriod"></div>
+        </div>
+
+        <div class="field">
+          <label for="salePrice">양도가액 <span class="hint">판 금액</span></label>
+          <div class="money-row">
+            <input type="text" inputmode="numeric" id="salePrice" class="money" value="1,400,000,000">
+            <span class="unit">원</span>
+          </div>
+          <div class="readout" id="salePriceKo"></div>
+        </div>
+
+        <div class="field">
+          <label for="buyPrice">취득가액 <span class="hint">산 금액</span></label>
+          <div class="money-row">
+            <input type="text" inputmode="numeric" id="buyPrice" class="money" value="800,000,000">
+            <span class="unit">원</span>
+          </div>
+          <div class="readout" id="buyPriceKo"></div>
+        </div>
+
+        <div class="field">
+          <label for="expense">필요경비 <span class="hint">취득세 · 중개보수 · 법무사비 · 확장공사비 등</span></label>
+          <div class="money-row">
+            <input type="text" inputmode="numeric" id="expense" class="money" value="32,000,000">
+            <span class="unit">원</span>
+          </div>
+          <div class="readout" id="expenseKo"></div>
+        </div>
+
+        <div class="field" id="houseOnly">
+          <span class="lbl">주택 관련 사항</span>
+          <div class="checks">
+            <label class="chk">
+              <input type="checkbox" id="oneHouse" checked>
+              <span>1세대 1주택이다
+                <em class="why">양도일 기준 세대원 전체가 국내에 1주택만 보유</em>
+              </span>
+            </label>
+            <label class="chk">
+              <input type="checkbox" id="adjusted">
+              <span>취득 당시 조정대상지역이었다
+                <em class="why">이 경우 비과세를 받으려면 2년 이상 거주해야 합니다</em>
+              </span>
+            </label>
+            <label class="chk">
+              <input type="checkbox" id="heavy">
+              <span>다주택 중과세를 적용한다
+                <em class="why">중과 배제 조치가 유효한 기간에는 체크하지 마세요</em>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field" id="liveField">
+          <span class="lbl">거주 기간 <span class="hint">주민등록 전입일 ~ 전출일 · 나눠서 살았다면 구간을 추가하세요</span></span>
+          <div id="liveRows"></div>
+          <button type="button" class="add" id="addLive">+ 거주 구간 추가</button>
+          <div class="period" id="livePeriod"></div>
+          <p class="hint">일수는 입력한 시작일과 종료일을 모두 포함한 참고 합계입니다. 취득 전·양도 후 날짜는 제외하며, 실제 거주하지 않은 기간은 입력하지 마세요.</p>
+          <div id="liveReview" hidden>
+            <p>여러 거주 구간의 세법상 연수 환산은 추가 확인이 필요합니다. 국세청 또는 세무대리인에게 확인한 값이 있을 때만 입력하세요.</p>
+            <label for="confirmedLiveYears">확인받은 통산 거주 연수 (만 년)</label>
+            <input id="confirmedLiveYears" type="number" min="0" max="150" step="1" placeholder="미확인">
+            <label for="liveConfirmationRef">확인 근거 (회신번호·확인일 등)</label>
+            <input id="liveConfirmationRef" type="text" placeholder="확인 근거를 입력하세요">
+          </div>
+        </div>
+
+        <div class="field off" id="countField">
+          <label for="houseCount">보유 주택 수</label>
+          <select id="houseCount">
+            <option value="2">2주택 (기본세율 +20%p)</option>
+            <option value="3">3주택 이상 (기본세율 +30%p)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="priorDeduct">올해 이미 받은 기본공제 <span class="hint">같은 해 두 번째 양도라면 입력</span></label>
+          <div class="money-row">
+            <input type="text" inputmode="numeric" id="priorDeduct" class="money" value="0">
+            <span class="unit">원</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="actions">
+        <button type="button" id="reset">예시 값으로 되돌리기</button>
+        <button type="button" id="clear">전부 비우기</button>
+      </div>
+    </section>
+
+    <!-- ============ 결과 ============ -->
+    <section class="panel result" aria-label="계산 결과" aria-live="polite">
+      <div class="headline">
+        <div class="cap">총 납부세액</div>
+        <div class="total num" id="total">0원</div>
+        <div class="total-ko" id="totalKo"></div>
+      </div>
+
+      <dl class="facts">
+        <div class="fact">
+          <dt>세후 실현이익</dt>
+          <dd class="net num" id="netGain">0원</dd>
+        </div>
+        <div class="fact">
+          <dt>양도차익 대비 실효세율</dt>
+          <dd class="num" id="effRate">0%</dd>
+        </div>
+      </dl>
+
+      <div class="badges" id="badges"></div>
+      <div id="notes"></div>
+      <div class="ledger" id="ledger"></div>
+    </section>
+  </div>
+
+  <div class="disclaimer">
+    <strong>이 계산기는 참고용 추정치입니다.</strong>
+    실제 신고세액은 아래 사유로 달라질 수 있으니, 신고 전 반드시 국세청 홈택스 모의계산 또는 세무 전문가의 확인을 받으세요.
+    <ul>
+      <li>상속·증여로 취득했거나 취득가액이 불분명한 경우 (환산취득가액·기준시가 적용)</li>
+      <li>재개발·재건축 입주권, 감면 대상 주택, 농지·비사업용 토지 등 개별 특례</li>
+      <li>다주택 중과세 한시 배제 조치의 적용 기간 — 양도일 기준으로 확인이 필요합니다</li>
+      <li>같은 해에 두 건 이상을 양도해 합산 신고하는 경우</li>
+      <li>세법 개정 — 세율과 공제는 <em>양도일</em>이 속한 시점의 법령을 따릅니다</li>
+    </ul>
+    <p class="basis">
+      <strong>거주기간 기준 확인 · 2026-10-30</strong><br>
+      국세청 해석(서면-2020-법령해석재산-1806)은 장기보유특별공제의 거주기간을 취득일 이후 실제 거주한 기간으로 설명합니다.
+      <a href="https://www.nts.go.kr/upload/nts/ebook/sw_1227_j/sw_1227_j/assets/contents/download.pdf" target="_blank" rel="noopener">국세청 해석 수록 자료</a><br>
+      날짜 내역은 양력 달력 기준으로 윤일과 월말을 반영하며 양 끝 날짜를 포함해 표시합니다. 날짜 내역은 실제 거주 사실이나 세법상 인정 여부를 증명하지 않습니다.
+      여러 구간의 합계 일수를 첫 전입일에 붙여 연수로 환산하던 방식은 공식 근거 미확인으로 제거했습니다.
+      잔여 월·일의 통산 및 초일·말일 인정에 대한 공식 세부 산식 검증은 미완료입니다.
+      여러 구간의 세액은 확인받은 연수와 근거를 입력한 경우에만 계산합니다. 상속·증여·재건축 등 특례는 별도 검토가 필요합니다.
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- 세율·공제 테이블 ---------- */
+  // 소득세법 §55 기본세율 [상한, 세율, 누진공제]
+  var BASE = [
+    [ 14000000, 0.06,        0],
+    [ 50000000, 0.15,  1260000],
+    [ 88000000, 0.24,  5760000],
+    [150000000, 0.35, 15440000],
+    [300000000, 0.38, 19940000],
+    [500000000, 0.40, 25940000],
+    [1000000000,0.42, 35940000],
+    [Infinity,  0.45, 65940000]
+  ];
+  var HIGH_PRICE = 1200000000;   // 1세대1주택 비과세 한도
+  var BASIC_DEDUCT = 2500000;    // 양도소득 기본공제 (연 1회)
+  var LOCAL_RATE = 0.10;         // 지방소득세
+
+  /* ---------- 포맷 ---------- */
+  function won(n){ return Math.round(n).toLocaleString('ko-KR') + '원'; }
+  function pct(r){ return (Math.round(r*1000)/10).toLocaleString('ko-KR') + '%'; }
+  function korean(n){
+    n = Math.round(Math.abs(n));
+    if(n === 0) return '';
+    var sign = '';
+    var jo  = Math.floor(n / 1e12);
+    var eok = Math.floor((n % 1e12) / 1e8);
+    var man = Math.floor((n % 1e8) / 1e4);
+    var rest= n % 1e4;
+    var out = [];
+    if(jo)  out.push(jo.toLocaleString('ko-KR') + '조');
+    if(eok) out.push(eok.toLocaleString('ko-KR') + '억');
+    if(man) out.push(man.toLocaleString('ko-KR') + '만');
+    if(rest && !jo && !eok) out.push(rest.toLocaleString('ko-KR'));
+    return sign + out.join(' ') + '원';
+  }
+  function digits(s){ return (s || '').replace(/[^0-9]/g,''); }
+
+  /* 날짜 표시용: 양 끝 포함 달력 기간. 세법상 거주기간 인정과 구분한다.
+     보유기간 로직은 기존 유지. 불연속 거주 연수는 자동 확정하지 않는다. */
+  function parseDate(s){
+    if(!s) return null;
+    var p = String(s).split('-');
+    if(p.length !== 3) return null;
+    var y = +p[0], m = +p[1], d = +p[2];
+    if(!y || !m || !d) return null;
+    var dt = new Date(y, m - 1, d, 12, 0, 0, 0);
+    // 2월 30일처럼 존재하지 않는 날짜가 넘어오면 걸러냅니다.
+    if(dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+    return dt;
+  }
+
+  function dayIndex(dt){ return Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()) / 86400000; }
+
+  function addDays(dt, n){
+    var x = new Date(dt.getTime());
+    x.setDate(x.getDate() + n);   // 월·연·윤일 넘김을 런타임이 처리합니다.
+    return x;
+  }
+
+  // a로부터 n개월이 "만료하는 날" — 그 날까지 포함하면 만 n개월입니다.
+  //   민법 §160② 기산일 해당일의 전일에 만료
+  //   민법 §160③ 최종의 월에 해당일이 없으면 그 달의 말일에 만료 (1/31 + 1개월 = 2/28)
+  function expiryOf(a, n){
+    var y = a.getFullYear(), m = a.getMonth() + n, day = a.getDate();
+    var last = new Date(y, m + 1, 0, 12).getDate();   // 대상 월의 말일 (윤년 2월이면 29)
+    if(day > last) return new Date(y, m, last, 12, 0, 0, 0);
+    return addDays(new Date(y, m, day, 12, 0, 0, 0), -1);
+  }
+
+  // a일부터 b일까지 (양쪽 끝 포함) → { y, m, d, days }
+  function periodOf(a, b){
+    if(!a || !b) return null;
+    if(b.getTime() < a.getTime()) return { invalid:true, y:0, m:0, d:0, days:0 };
+
+    // 채운 개월 수를 찾는다. 어림값에서 출발해 양방향으로 맞춥니다.
+    var months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()) + 1;
+    if(months < 0) months = 0;
+    while(months > 0 && expiryOf(a, months).getTime() > b.getTime()) months--;
+    while(expiryOf(a, months + 1).getTime() <= b.getTime()) months++;
+
+    // 남는 일수 — months가 0이면 expiryOf(a,0)은 a의 전날이므로 초일산입 일수가 그대로 나옵니다.
+    var rest = dayIndex(b) - dayIndex(expiryOf(a, months));
+
+    return {
+      invalid: false,
+      y: Math.floor(months / 12),
+      m: months % 12,
+      d: rest,
+      days: dayIndex(b) - dayIndex(a) + 1
+    };
+  }
+
+  function periodText(p){
+    if(!p) return '';
+    if(p.invalid) return '종료일이 시작일보다 빠릅니다';
+    var out = [];
+    if(p.y) out.push(p.y + '년');
+    if(p.m) out.push(p.m + '개월');
+    if(p.d) out.push(p.d + '일');
+    return out.length ? out.join(' ') : '0일';
+  }
+
+  /* ---------- 거주 구간 통산 ---------- */
+  // 여러 번 나눠 살았다면 각 구간을 합산합니다. 겹치는 구간은 먼저 병합해 이중 계산을 막습니다.
+  function aggregateLive(list, ownedFrom, ownedTo){
+    var valid = [], anyInvalid = false, clipped = false, i;
+    for(i = 0; i < list.length; i++){
+      var r = list[i];
+      if(!r.from || !r.to){ if(r.from || r.to || r.hasInput) anyInvalid = true; continue; }
+      if(r.to.getTime() < r.from.getTime()){ anyInvalid = true; continue; }
+      var from = r.from, to = r.to;
+      if(ownedFrom && from < ownedFrom){ from = ownedFrom; clipped = true; }
+      if(ownedTo && to > ownedTo){ to = ownedTo; clipped = true; }
+      if(from > to){ clipped = true; continue; }
+      valid.push({ from:from, to:to });
+    }
+    if(!valid.length){
+      return { count:0, days:0, years:0, segments:[], anchor:null, clipped:clipped, requiresReview:false, overlapped:false, anyInvalid:anyInvalid };
+    }
+
+    valid.sort(function(a, b){ return a.from.getTime() - b.from.getTime(); });
+
+    var merged = [], overlapped = false;
+    var cur = { from:valid[0].from, to:valid[0].to };
+    for(i = 1; i < valid.length; i++){
+      var v = valid[i];
+      if(v.from.getTime() <= addDays(cur.to, 1).getTime()){   // 겹치거나 하루도 안 비면 이어붙임
+        if(v.from.getTime() <= cur.to.getTime()) overlapped = true;
+        if(v.to.getTime() > cur.to.getTime()) cur.to = v.to;
+      } else {
+        merged.push(cur);
+        cur = { from:v.from, to:v.to };
+      }
+    }
+    merged.push(cur);
+
+    var days = 0;
+    for(i = 0; i < merged.length; i++) days += periodOf(merged[i].from, merged[i].to).days;
+
+    return {
+      count: valid.length,
+      segments: merged,
+      days: days,
+      years: merged.length === 1 ? periodOf(merged[0].from, merged[0].to).y : null,
+      requiresReview: merged.length > 1,
+      clipped: clipped,
+      anchor: merged[0].from,
+      overlapped: overlapped,
+      anyInvalid: anyInvalid
+    };
+  }
+
+  function liveText(agg){
+    if(!agg || !agg.count) return '';
+    if(agg.segments.length === 1) return periodText(periodOf(agg.segments[0].from, agg.segments[0].to));
+    return '통산 ' + agg.days.toLocaleString('ko-KR') + '일 (적용 연수 확인 필요)';
+  }
+
+  /* ---------- 장기보유특별공제 ---------- */
+  // 표1: 일반 — 3년 6%, 연 2%, 15년 30% 상한
+  function table1(holdY){
+    if(holdY < 3) return 0;
+    return Math.min(0.30, holdY * 0.02);
+  }
+  // 표2: 1세대1주택(거주 2년 이상) — 보유 연 4%(40%) + 거주 연 4%(40%), 합 80%
+  function table2(holdY, liveY){
+    var h = holdY < 3 ? 0 : Math.min(0.40, holdY * 0.04);
+    var l = 0;
+    if(liveY >= 3)      l = Math.min(0.40, liveY * 0.04);
+    else if(liveY >= 2) l = 0.08;
+    return Math.min(0.80, h + l);
+  }
+
+  /* ---------- 기본세율 ---------- */
+  function baseTax(taxBase){
+    if(taxBase <= 0) return { tax:0, rate:0 };
+    for(var i=0;i<BASE.length;i++){
+      if(taxBase <= BASE[i][0]){
+        return { tax: taxBase * BASE[i][1] - BASE[i][2], rate: BASE[i][1] };
+      }
+    }
+    return { tax:0, rate:0 };
+  }
+
+  /* ---------- 단기보유 세율 ---------- */
+  function shortRate(kind, holdY){
+    if(kind === 'right')  return holdY < 1 ? 0.70 : 0.60;           // 분양권
+    if(kind === 'land')   return holdY < 1 ? 0.50 : (holdY < 2 ? 0.40 : 0);
+    return holdY < 1 ? 0.70 : (holdY < 2 ? 0.60 : 0);               // 주택·입주권
+  }
+
+  /* ---------- 계산 엔진 ---------- */
+  function calculate(i){
+    var r = { rows:[], badges:[], notes:[] };
+    var holdY = i.holdYears;
+    r.holdY = holdY;
+
+    // 기간 입력 점검
+    if(!i.hold){
+      r.notes.push({c:'info', html:'취득일과 양도일을 모두 입력하면 보유 기간을 자동으로 계산합니다.'});
+    } else if(i.hold.invalid){
+      r.notes.push({c:'', html:'<strong>양도일이 취득일보다 빠릅니다.</strong> 날짜를 확인해 주세요.'});
+    }
+    if(i.kind === 'house' && i.oneHouse){
+      if(i.live.anyInvalid){
+        r.notes.push({c:'', html:'<strong>거주 구간 입력을 확인하세요.</strong> 날짜가 누락되었거나 순서가 잘못되어 세액 계산을 중단했습니다.'});
+      }
+      if(i.live.overlapped){
+        r.notes.push({c:'info', html:'<strong>겹치는 거주 구간</strong>이 있어 하나로 합쳐 계산했습니다. 같은 기간이 두 번 세어지지 않습니다.'});
+      }
+      if(i.hold && !i.hold.invalid && i.live.days > i.hold.days){
+        r.notes.push({c:'', html:'<strong>거주 기간이 보유 기간보다 깁니다.</strong> 장기보유특별공제의 거주기간은 보유기간 중 실제 거주한 기간만 인정됩니다.'});
+      }
+    }
+
+    if(i.kind === 'house' && i.oneHouse && i.live.clipped){
+      r.notes.push({c:'info', html:'취득 전·양도 후 날짜는 거주 통산에서 제외했습니다. 위 구간별 표시는 입력 내역, 통산 합계는 보유기간 내 날짜입니다.'});
+    }
+    if(!i.hold || i.hold.invalid || (i.kind === 'house' && i.oneHouse && i.residenceBlocked)){
+      r.blocked = true; r.total = null;
+      r.notes.push({c:'info', html:'날짜 오류를 수정하거나 통산 거주 연수의 확인값과 근거를 입력해 주세요. 미확인 결과를 비과세 또는 0원으로 표시하지 않습니다.'});
+      return r;
+    }
+    var gain = i.salePrice - i.buyPrice - i.expense;
+    r.gain = gain;
+    r.rows.push({op:'',  name:'양도가액',  value:i.salePrice});
+    r.rows.push({op:'−', name:'취득가액',  value:i.buyPrice});
+    r.rows.push({op:'−', name:'필요경비',  value:i.expense});
+    r.rows.push({op:'=', name:'양도차익',  value:gain, cls:'sum'});
+
+    if(i.hold && !i.hold.invalid) r.badges.push({t:'보유 ' + periodText(i.hold), c:''});
+    if(i.kind === 'house' && i.oneHouse && i.live.days > 0){
+      r.badges.push({t:'거주 ' + liveText(i.live) + (i.live.segments.length > 1 ? ' · ' + i.live.segments.length + '구간' : ''), c:''});
+    }
+
+    // 양도차손
+    if(gain <= 0){
+      r.exempt = true;
+      r.total = 0; r.local = 0; r.calcTax = 0; r.netGain = gain;
+      r.notes.push({c:'info', html:'양도차익이 없어 납부할 양도소득세가 없습니다. 같은 해 다른 자산에서 양도차익이 났다면 이 손실과 통산할 수 있습니다.'});
+      return r;
+    }
+
+    // 1세대1주택 비과세 요건
+    var isHouse = (i.kind === 'house');
+    var qualified = isHouse && i.oneHouse && holdY >= 2 && (!i.adjusted || i.liveYears >= 2);
+
+    if(isHouse && i.oneHouse && !qualified){
+      if(holdY < 2){
+        r.notes.push({c:'', html:'1세대 1주택이지만 <strong>보유 기간이 2년 미만</strong>이라 비과세 요건을 채우지 못했습니다. 전액 과세되고 단기보유 세율이 적용됩니다.'});
+      } else {
+        r.notes.push({c:'', html:'취득 당시 조정대상지역이었는데 <strong>거주 기간이 2년 미만</strong>이라 비과세 요건을 채우지 못했습니다. 전액 과세됩니다.'});
+      }
+    }
+
+    // 비과세
+    if(qualified && i.salePrice <= HIGH_PRICE){
+      r.exempt = true;
+      r.total = 0; r.local = 0; r.calcTax = 0; r.netGain = gain;
+      r.badges.push({t:'1세대 1주택 비과세', c:'b-net'});
+      r.notes.push({c:'good', html:'<strong>비과세 대상입니다.</strong> 1세대 1주택이면서 양도가액이 12억원 이하이고 보유·거주 요건을 충족해 납부할 세금이 없습니다. (신고 의무도 없습니다)'});
+      return r;
+    }
+
+    // 고가주택 안분
+    var taxable = gain;
+    if(qualified && i.salePrice > HIGH_PRICE){
+      var ratio = (i.salePrice - HIGH_PRICE) / i.salePrice;
+      taxable = gain * ratio;
+      r.badges.push({t:'고가주택 · 12억 초과분만 과세', c:''});
+      r.rows.push({op:'×', name:'과세대상 비율', value:null, text:pct(ratio) + ' — (양도가 − 12억) ÷ 양도가'});
+      r.rows.push({op:'=', name:'과세대상 양도차익', value:taxable, cls:'sum'});
+    }
+    r.taxable = taxable;
+
+    // 중과 여부
+    var heavyApplies = isHouse && i.heavy && holdY >= 2;
+    var heavyAdd = heavyApplies ? (i.houseCount >= 3 ? 0.30 : 0.20) : 0;
+    if(heavyApplies) r.badges.push({t:i.houseCount >= 3 ? '3주택 중과 +30%p' : '2주택 중과 +20%p', c:'b-tax'});
+
+    // 장기보유특별공제
+    var ltRate = 0, ltLabel = '';
+    if(i.kind === 'right'){
+      ltLabel = '분양권 — 공제 대상 아님';
+    } else if(heavyApplies){
+      ltLabel = '중과 대상 — 공제 배제';
+    } else if(qualified && holdY >= 3 && i.liveYears >= 2){
+      ltRate = table2(holdY, i.liveYears);
+      ltLabel = '1세대1주택 표2 (보유+거주)';
+    } else {
+      ltRate = table1(holdY);
+      ltLabel = holdY < 3 ? '보유 3년 미만 — 대상 아님' : '일반 표1';
+    }
+    var ltAmount = taxable * ltRate;
+    r.ltRate = ltRate;
+    if(ltRate > 0) r.badges.push({t:'장기보유공제 ' + pct(ltRate), c:'b-net'});
+    r.rows.push({op:'−', name:'장기보유특별공제', value:ltAmount, sub:ltLabel + (ltRate>0 ? ' · ' + pct(ltRate) : '')});
+
+    var income = taxable - ltAmount;
+    r.rows.push({op:'=', name:'양도소득금액', value:income, cls:'sum'});
+
+    // 기본공제
+    var deduct = Math.max(0, Math.min(BASIC_DEDUCT - i.priorDeduct, income));
+    r.rows.push({op:'−', name:'양도소득 기본공제', value:deduct, sub:i.priorDeduct > 0 ? '연 250만원 한도 중 잔여분' : '연 250만원, 인별 1회'});
+
+    var taxBase = Math.max(0, income - deduct);
+    r.taxBase = taxBase;
+    r.rows.push({op:'=', name:'과세표준', value:taxBase, cls:'sum'});
+
+    // 세율 — 단기 단일세율 vs 기본세율(+중과) 비교과세
+    var sr = shortRate(i.kind, holdY);
+    var byBase = baseTax(taxBase);
+    var baseAmount = byBase.tax + taxBase * heavyAdd;
+    var shortAmount = sr > 0 ? taxBase * sr : 0;
+
+    var calcTax, rateLabel;
+    if(shortAmount >= baseAmount && sr > 0){
+      calcTax = shortAmount;
+      rateLabel = '단기보유 ' + pct(sr) + ' 단일세율';
+    } else {
+      calcTax = baseAmount;
+      rateLabel = '기본세율 ' + pct(byBase.rate) + (heavyAdd ? ' + 중과 ' + pct(heavyAdd) : '');
+    }
+    calcTax = Math.max(0, calcTax);
+    r.calcTax = calcTax;
+    r.badges.push({t:rateLabel, c:'b-tax'});
+    r.rows.push({op:'×', name:'세율 적용', value:null, text:rateLabel});
+    r.rows.push({op:'=', name:'산출세액', value:calcTax, cls:'sum'});
+
+    var local = calcTax * LOCAL_RATE;
+    r.local = local;
+    r.rows.push({op:'+', name:'지방소득세', value:local, sub:'산출세액의 10%'});
+
+    r.total = calcTax + local;
+    r.rows.push({op:'=', name:'총 납부세액', value:r.total, cls:'grand'});
+
+    r.netGain = gain - r.total;
+    r.effRate = gain > 0 ? r.total / gain : 0;
+
+    if(sr > 0 && shortAmount >= baseAmount){
+      r.notes.push({c:'', html:'보유 기간이 짧아 <strong>' + pct(sr) + ' 단일세율</strong>이 적용됐습니다. 하루 차이로 세율 구간이 바뀌니 양도일(잔금일)을 반드시 확인하세요.'});
+    }
+    if(heavyApplies){
+      r.notes.push({c:'', html:'다주택 중과세를 적용해 계산했습니다. 중과는 <strong>한시 배제 조치</strong>가 반복 연장돼 왔으므로, 양도일 기준으로 배제 여부를 국세청에서 확인하세요.'});
+    }
+    return r;
+  }
+
+  /* ---------- DOM ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  var moneyIds = ['salePrice','buyPrice','expense','priorDeduct'];
+
+  function liveRowHTML(f, t){
+    return '<div class="live-row">'
+         +   '<div class="top">'
+         +     '<div class="dates">'
+         +       '<input type="date" class="lf" value="' + (f || '') + '" aria-label="전입일">'
+         +       '<span class="tilde">~</span>'
+         +       '<input type="date" class="lt" value="' + (t || '') + '" aria-label="전출일">'
+         +     '</div>'
+         +     '<button type="button" class="del" title="이 구간 삭제" aria-label="이 구간 삭제">&times;</button>'
+         +   '</div>'
+         +   '<div class="sub"></div>'
+         + '</div>';
+  }
+
+  function setLiveRows(pairs){
+    var html = '';
+    for(var i = 0; i < pairs.length; i++) html += liveRowHTML(pairs[i][0], pairs[i][1]);
+    $('liveRows').innerHTML = html || liveRowHTML('', '');
+  }
+
+  function readLiveRows(){
+    var rows = $('liveRows').querySelectorAll('.live-row'), out = [];
+    for(var i = 0; i < rows.length; i++){
+      var f = parseDate(rows[i].querySelector('.lf').value);
+      var t = parseDate(rows[i].querySelector('.lt').value);
+      out.push({ from:f, to:t, hasInput: !!(rows[i].querySelector('.lf').value || rows[i].querySelector('.lt').value), p: periodOf(f, t) });
+    }
+    return out;
+  }
+
+  function readInputs(){
+    var kind = document.querySelector('input[name="kind"]:checked').value;
+    var hold = periodOf(parseDate($('buyDate').value), parseDate($('sellDate').value));
+    var liveList = readLiveRows();
+    var live = aggregateLive(liveList, parseDate($('buyDate').value), parseDate($('sellDate').value));
+    var confirmed = $('confirmedLiveYears').value;
+    var confirmedYears = confirmed !== '' && /^\d+$/.test(confirmed) ? +confirmed : null;
+    var confirmationValid = confirmedYears !== null && confirmedYears <= 150 && hold && !hold.invalid && confirmedYears <= hold.y && confirmedYears * 365 <= live.days && $('liveConfirmationRef').value.trim().length > 0;
+    if(live.requiresReview && confirmationValid){ live.years = confirmedYears; live.confirmed = true; }
+    $('liveReview').hidden = !live.requiresReview;
+    return {
+      kind: kind,
+      hold: hold,
+      live: live,
+      liveList: liveList,
+      holdYears: (hold && !hold.invalid) ? hold.y : 0,
+      liveYears: live.years,
+      residenceBlocked: live.anyInvalid || (live.requiresReview && !live.confirmed),
+      salePrice: +digits($('salePrice').value) || 0,
+      buyPrice:  +digits($('buyPrice').value)  || 0,
+      expense:   +digits($('expense').value)   || 0,
+      priorDeduct: +digits($('priorDeduct').value) || 0,
+      oneHouse: kind === 'house' && $('oneHouse').checked,
+      adjusted: $('adjusted').checked,
+      heavy:    kind === 'house' && $('heavy').checked && !$('oneHouse').checked,
+      houseCount: +$('houseCount').value || 2
+    };
+  }
+
+  function renderLedger(rows){
+    var html = '';
+    for(var i=0;i<rows.length;i++){
+      var r = rows[i];
+      var cls = 'lrow' + (r.cls ? ' ' + r.cls : '') + (r.value === 0 && !r.cls ? ' muted' : '');
+      var val = r.value === null ? r.text : won(r.value);
+      html += '<div class="' + cls + '">'
+            +   '<div class="op">' + (r.op || '') + '</div>'
+            +   '<div class="nm">' + r.name + (r.sub ? '<em>' + r.sub + '</em>' : '') + '</div>'
+            +   '<div class="vl">' + val + '</div>'
+            + '</div>';
+    }
+    return html;
+  }
+
+  function paintPeriod(elId, p, suffix){
+    var el = $(elId);
+    if(!p){
+      el.className = 'period empty';
+      el.innerHTML = '<span class="big">두 날짜를 모두 입력하면 자동으로 계산됩니다</span>';
+      return;
+    }
+    if(p.invalid){
+      el.className = 'period bad';
+      el.innerHTML = '<span class="big">종료일이 시작일보다 빠릅니다</span>';
+      return;
+    }
+    el.className = 'period';
+    el.innerHTML = '<span class="big">' + periodText(p) + '</span>'
+                 + '<span class="aside">총 ' + p.days.toLocaleString('ko-KR') + '일 · ' + suffix + '</span>';
+  }
+
+  function paintLiveRows(list){
+    var rows = $('liveRows').querySelectorAll('.live-row');
+    for(var i = 0; i < rows.length; i++){
+      var sub = rows[i].querySelector('.sub'), r = list[i];
+      rows[i].querySelector('.del').style.visibility = rows.length > 1 ? 'visible' : 'hidden';
+      if(!r || !r.from || !r.to){ sub.textContent = ''; sub.className = 'sub'; continue; }
+      if(r.p.invalid){ sub.textContent = '전출일이 전입일보다 빠릅니다'; sub.className = 'sub bad'; continue; }
+      sub.textContent = periodText(r.p) + ' · ' + r.p.days.toLocaleString('ko-KR') + '일';
+      sub.className = 'sub';
+    }
+  }
+
+  function paintLiveTotal(agg){
+    var el = $('livePeriod');
+    if(!agg.count){
+      el.className = 'period empty';
+      el.innerHTML = '<span class="big">전입일과 전출일을 넣으면 자동으로 계산됩니다</span>';
+      return;
+    }
+    var aside = '보유기간 내 참고 합계 ' + agg.days.toLocaleString('ko-KR') + '일 · ' + (agg.requiresReview ? (agg.confirmed ? '사용자 확인값 만 ' + agg.years + '년 적용' : '세액 계산 보류') : '달력상 만 ' + agg.years + '년');
+    if(agg.segments.length > 1) aside = agg.segments.length + '개 구간 통산 · ' + aside;
+    el.className = 'period';
+    el.innerHTML = '<span class="big">' + liveText(agg) + '</span>'
+                 + '<span class="aside">' + aside + '</span>';
+  }
+
+  function render(){
+    var signature = JSON.stringify([$ ('buyDate').value, $('sellDate').value, readLiveRows().map(function(r){return [r.from, r.to, r.hasInput];})]);
+    if(render.lastSignature !== signature){ $('confirmedLiveYears').value = ''; $('liveConfirmationRef').value = ''; render.lastSignature = signature; }
+    var i = readInputs();
+    var r = calculate(i);
+
+    paintPeriod('holdPeriod', i.hold, '만 ' + i.holdYears + '년으로 계산');
+    paintLiveRows(i.liveList);
+    paintLiveTotal(i.live);
+
+    var t = $('total');
+    t.textContent = r.blocked ? '확인 필요' : won(r.total);
+    t.className = 'total num' + (r.total === 0 ? ' zero' : '');
+    $('totalKo').textContent = r.total > 0 ? korean(r.total) : (r.exempt ? '납부할 세금이 없습니다' : '');
+
+    $('netGain').textContent = r.blocked ? '—' : won(r.netGain || 0);
+    $('effRate').textContent = r.gain > 0 ? pct(r.effRate || 0) : '—';
+
+    var bh = '';
+    for(var b=0;b<r.badges.length;b++){
+      bh += '<span class="badge ' + (r.badges[b].c || '') + '">' + r.badges[b].t + '</span>';
+    }
+    $('badges').innerHTML = bh;
+    $('badges').style.display = bh ? 'flex' : 'none';
+
+    var nh = '';
+    for(var n=0;n<r.notes.length;n++){
+      nh += '<div class="note ' + (r.notes[n].c || '') + '">' + r.notes[n].html + '</div>';
+    }
+    $('notes').innerHTML = nh;
+
+    $('ledger').innerHTML = renderLedger(r.rows);
+
+    for(var m=0;m<3;m++){
+      var el = $(moneyIds[m]);
+      $(moneyIds[m] + 'Ko').textContent = korean(+digits(el.value) || 0);
+    }
+  }
+
+  /* ---------- 조건부 필드 ---------- */
+  function syncFields(){
+    var kind = document.querySelector('input[name="kind"]:checked').value;
+    var isHouse = kind === 'house';
+    $('houseOnly').classList.toggle('off', !isHouse);
+    $('liveField').classList.toggle('off', !isHouse || !$('oneHouse').checked);
+    $('countField').classList.toggle('off', !isHouse || !$('heavy').checked || $('oneHouse').checked);
+    if($('oneHouse').checked) $('heavy').checked = false;
+  }
+
+  /* ---------- 이벤트 ---------- */
+  function onMoneyInput(e){
+    var el = e.target;
+    var raw = digits(el.value);
+    var pos = el.selectionStart, len = el.value.length;
+    el.value = raw ? (+raw).toLocaleString('ko-KR') : '';
+    var diff = el.value.length - len;
+    try { el.setSelectionRange(pos + diff, pos + diff); } catch(err){}
+    render();
+  }
+  moneyIds.forEach(function(id){ $(id).addEventListener('input', onMoneyInput); });
+
+  document.addEventListener('change', function(){ syncFields(); render(); });
+  document.addEventListener('input', function(e){
+    if(moneyIds.indexOf(e.target.id) === -1) render();
+  });
+
+  // 오늘 날짜 — toISOString()은 UTC라 한국에서 오전에 하루 밀립니다. 현지 기준으로 만듭니다.
+  function todayISO(){
+    var n = new Date(), p = function(v){ return (v < 10 ? '0' : '') + v; };
+    return n.getFullYear() + '-' + p(n.getMonth() + 1) + '-' + p(n.getDate());
+  }
+
+  var SAMPLE = {
+    kind:'house', buyDate:'2018-04-12', sellDate:'2026-09-11',
+    salePrice:'1,400,000,000', buyPrice:'800,000,000', expense:'32,000,000',
+    oneHouse:true, adjusted:false, heavy:false, priorDeduct:'0',
+    // 2년쯤 전세를 주고 나갔다가 돌아온, 통산이 필요한 실제로 흔한 형태
+    live:[['2018-06-01','2021-05-31'], ['2023-06-01','2026-09-11']]
+  };
+  function apply(s){
+    document.querySelector('input[name="kind"][value="' + s.kind + '"]').checked = true;
+    $('buyDate').value = s.buyDate; $('sellDate').value = s.sellDate;
+    setLiveRows(s.live || []);
+    $('confirmedLiveYears').value = ''; $('liveConfirmationRef').value = '';
+    $('salePrice').value = s.salePrice; $('buyPrice').value = s.buyPrice;
+    $('expense').value = s.expense; $('priorDeduct').value = s.priorDeduct;
+    $('oneHouse').checked = s.oneHouse; $('adjusted').checked = s.adjusted;
+    $('heavy').checked = s.heavy;
+    syncFields(); render();
+  }
+  $('reset').addEventListener('click', function(){ apply(SAMPLE); });
+  $('clear').addEventListener('click', function(){
+    apply({ kind:'house', buyDate:'', sellDate:todayISO(), live:[],
+            salePrice:'', buyPrice:'', expense:'', oneHouse:true, adjusted:false,
+            heavy:false, priorDeduct:'0' });
+  });
+
+  $('addLive').addEventListener('click', function(){
+    $('liveRows').insertAdjacentHTML('beforeend', liveRowHTML('', ''));
+    var rows = $('liveRows').querySelectorAll('.live-row');
+    render();
+    rows[rows.length - 1].querySelector('.lf').focus();
+  });
+
+  $('liveRows').addEventListener('click', function(e){
+    var btn = e.target.closest ? e.target.closest('.del') : null;
+    if(!btn) return;
+    var rows = $('liveRows').querySelectorAll('.live-row');
+    if(rows.length > 1){
+      btn.closest('.live-row').remove();
+    } else {                        // 마지막 한 줄은 지우지 않고 비웁니다
+      rows[0].querySelector('.lf').value = '';
+      rows[0].querySelector('.lt').value = '';
+    }
+    render();
+  });
+
+  apply(SAMPLE);
+})();
+</script>
+
+</body>
+</html>
+
